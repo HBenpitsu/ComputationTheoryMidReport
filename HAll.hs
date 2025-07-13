@@ -58,8 +58,7 @@ hAcc = TM {
                 _             -> HALT_TR REJECT
             ENCODED_TM _ -> case lastCall of
                 NO_CALL_JUST_BEFORE -> CALL_TR hAll [2]
-                CALL_JUST_BEFORE ACCEPT -> HALT_TR ACCEPT
-                CALL_JUST_BEFORE REJECT -> HALT_TR REJECT
+                CALL_JUST_BEFORE halt -> HALT_TR halt
             _ -> error "Unexpected tape content"
             
 }
