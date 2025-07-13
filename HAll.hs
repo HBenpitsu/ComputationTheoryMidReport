@@ -1,18 +1,18 @@
 import Lib.Definition
 import Lib.HeadActions
 
-tmAll :: TuringMachine
-tmAll = TM {
-    externalTapes = 1,
-    initInnerTapes = [],
-    transition = \_ [ipt] -> HALT_TR ACCEPT
-}
-tmEmpty :: TuringMachine
-tmEmpty = TM {
-    externalTapes = 1,
-    initInnerTapes = [],
-    transition = \_ [ipt] -> HALT_TR REJECT
-}
+-- tmAll :: TuringMachine
+-- tmAll = TM {
+--     externalTapes = 1,
+--     initInnerTapes = [],
+--     transition = \_ [ipt] -> HALT_TR ACCEPT
+-- }
+-- tmEmpty :: TuringMachine
+-- tmEmpty = TM {
+--     externalTapes = 1,
+--     initInnerTapes = [],
+--     transition = \_ [ipt] -> HALT_TR REJECT
+-- }
 
 f :: TuringMachine
 f = TM {
@@ -24,10 +24,34 @@ f = TM {
                 identTape,
                 writeAtHead (ENCODED_TM tm)
                 ]
-        in case lastCall of
-            NO_CALL_JUST_BEFORE -> CALL_TR machine [1]
-            CALL_JUST_BEFORE ACCEPT -> returnTM tmAll
-            CALL_JUST_BEFORE REJECT -> returnTM tmEmpty
+        in case return of
+            BLANK -> MODS_TR [
+                identTape,
+                identTape,
+                writeAtHead (ENCODED_TM TM {
+                    externalTapes = 1,
+                    initInnerTapes = [TAPE 0 []],
+                    transition = \_ [_, wd] -> case lastCall of
+                        NO_CALL_JUST_BEFORE -> CALL_TR machine [1]
+                        CALL_JUST_BEFORE ACCEPT -> HALT_TR ACCEPT
+                        CALL_JUST_BEFORE REJECT -> HALT_TR REJECT
+                })]
+            ENCODED_TM TM {
+                externalTapes = externalTapes',
+                initInnerTapes = [TAPE 0 wd'],
+                transition = transition'
+            } -> case word of
+                BLANK -> HALT_TR ACCEPT
+                _ -> MODS_TR [
+                    identTape,
+                    moveHead RIGHT,
+                    writeAtHead (ENCODED_TM TM {
+                        externalTapes = externalTapes',
+                        -- accumulate the word on the tape
+                        initInnerTapes = [TAPE 0 (wd' ++ [word])],
+                        transition = transition'
+                    })]
+
 }
 
 -- | impossible
