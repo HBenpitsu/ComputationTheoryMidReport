@@ -1,19 +1,6 @@
 import Lib.Definition
 import Lib.HeadActions
 
--- tmAll :: TuringMachine
--- tmAll = TM {
---     externalTapes = 1,
---     initInnerTapes = [],
---     transition = \_ [ipt] -> HALT_TR ACCEPT
--- }
--- tmEmpty :: TuringMachine
--- tmEmpty = TM {
---     externalTapes = 1,
---     initInnerTapes = [],
---     transition = \_ [ipt] -> HALT_TR REJECT
--- }
-
 f :: TuringMachine
 f = TM {
     externalTapes = 3,
