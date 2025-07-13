@@ -1,0 +1,2 @@
+ghc IsPrime.hs && ./IsPrime
+ghc Inter.hs && ./Inter
