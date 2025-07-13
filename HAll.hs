@@ -31,7 +31,7 @@ f = TM {
                 writeAtHead (ENCODED_TM TM {
                     externalTapes = 1,
                     initInnerTapes = [TAPE 0 []],
-                    transition = \_ [ipt, word] -> case lastCall of
+                    transition = \lastCall' [_, word'] -> case lastCall' of
                         NO_CALL_JUST_BEFORE -> CALL_TR machine [1]
                         CALL_JUST_BEFORE ACCEPT -> HALT_TR ACCEPT
                         CALL_JUST_BEFORE REJECT -> HALT_TR REJECT
