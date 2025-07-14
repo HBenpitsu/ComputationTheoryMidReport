@@ -87,9 +87,11 @@ tmAdd = TM {
                 ]
         in case mode of
             MODE "REV1" -> case lastCall of
+                -- rev ipt1
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmReverse [0]
                 CALL_JUST_BEFORE ACCEPT -> changeMode "REV2"
             MODE "REV2" -> case lastCall of
+                -- rev ipt2
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmReverse [1]
                 CALL_JUST_BEFORE ACCEPT -> changeMode "ADD"
             MODE "ADD" -> case (ipt1, ipt2, carry) of
@@ -117,6 +119,7 @@ tmAdd = TM {
                                 writeAtHead (MODE "ADD")
                             ]
                         else changeMode "TERMINATE_LEF_REJ"
+            -- accept after all
             MODE "TERMINATE_LEF" -> case (ipt1, ipt2) of
                 (BLANK, BLANK) -> MODS_TR [
                     moveHead RIGHT,
@@ -131,12 +134,15 @@ tmAdd = TM {
                     identTape
                     ]
             MODE "TERMINATE_REV1" -> case lastCall of
+                -- rev ipt1
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmReverse [0]
                 CALL_JUST_BEFORE ACCEPT -> changeMode "TERMINATE_REV2" 
             MODE "TERMINATE_REV2" -> case lastCall of
+                -- rev ipt2
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmReverse [1]
                 CALL_JUST_BEFORE ACCEPT -> HALT_TR ACCEPT
 
+            -- reject after all
             MODE "TERMINATE_LEF_REJ" -> case (ipt1, ipt2) of
                 (BLANK, BLANK) -> MODS_TR [
                     moveHead RIGHT,
@@ -151,9 +157,11 @@ tmAdd = TM {
                     identTape
                     ]
             MODE "TERMINATE_REV1_REJ" -> case lastCall of
+                -- rev ipt1
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmReverse [0]
                 CALL_JUST_BEFORE ACCEPT -> changeMode "TERMINATE_REV2_REJ" 
             MODE "TERMINATE_REV2_REJ" -> case lastCall of
+                -- rev ipt2
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmReverse [1]
                 CALL_JUST_BEFORE ACCEPT -> HALT_TR REJECT
 }
@@ -179,9 +187,11 @@ tmSub = TM {
                 ]
         in case mode of
             MODE "REV1" -> case lastCall of
+                -- rev ipt1
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmReverse [0]
                 CALL_JUST_BEFORE ACCEPT -> changeMode "REV2"
             MODE "REV2" -> case lastCall of
+                -- rev ipt2
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmReverse [1]
                 CALL_JUST_BEFORE ACCEPT -> changeMode "SUB"
             MODE "SUB" -> case (ipt1, ipt2, carry) of
@@ -215,6 +225,8 @@ tmSub = TM {
                             writeAtHead (MODE "SUB")
                         ]
                         else changeMode "TERMINATE_LEF_REJ"
+            
+            -- accept after all
             MODE "TERMINATE_LEF" -> case (ipt1, ipt2) of
                 (BLANK, BLANK) -> MODS_TR [
                     moveHead RIGHT,
@@ -229,12 +241,15 @@ tmSub = TM {
                     identTape
                     ]
             MODE "TERMINATE_REV1" -> case lastCall of
+                -- rev ipt1
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmReverse [0]
                 CALL_JUST_BEFORE ACCEPT -> changeMode "TERMINATE_REV2" 
             MODE "TERMINATE_REV2" -> case lastCall of
+                -- rev ipt2
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmReverse [1]
                 CALL_JUST_BEFORE ACCEPT -> HALT_TR ACCEPT
             
+            -- reject after all
             MODE "TERMINATE_LEF_REJ" -> case (ipt1, ipt2) of
                 (BLANK, BLANK) -> MODS_TR [
                     moveHead RIGHT,
@@ -249,9 +264,11 @@ tmSub = TM {
                     identTape
                     ]
             MODE "TERMINATE_REV1_REJ" -> case lastCall of
+                -- rev ipt1
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmReverse [0]
                 CALL_JUST_BEFORE ACCEPT -> changeMode "TERMINATE_REV2_REJ" 
             MODE "TERMINATE_REV2_REJ" -> case lastCall of
+                -- rev ipt2
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmReverse [1]
                 CALL_JUST_BEFORE ACCEPT -> HALT_TR REJECT
 }
@@ -294,13 +311,16 @@ tmMod = TM {
                 ]
         in case mode of
         MODE "INIT" -> case lastCall of
+            -- cp: ipt1 -> ipt1buf
             NO_CALL_JUST_BEFORE     -> CALL_TR tmCopy [0, 2]
             CALL_JUST_BEFORE ACCEPT -> changeMode "SUB"
         MODE "SUB" -> case lastCall of
+            -- ipt1buf -= ipt2
             NO_CALL_JUST_BEFORE     -> CALL_TR tmSub [2, 1]
             CALL_JUST_BEFORE REJECT -> HALT_TR ACCEPT
             CALL_JUST_BEFORE ACCEPT -> changeMode "CPY"
         MODE "CPY" -> case lastCall of
+            -- cp: ipt1buf -> ipt1 / reflect tentative result
             NO_CALL_JUST_BEFORE     -> CALL_TR tmCopy [2, 0]
             CALL_JUST_BEFORE ACCEPT -> changeMode "SUB"
 }
@@ -322,39 +342,49 @@ tmIsPrime = TM {
                 ]
         in case mode of
             MODE "INIT" -> case lastCall of
+                -- cp: ipt -> iptBuf
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmCopy [0, 1]
                 CALL_JUST_BEFORE ACCEPT -> changeMode "LESS_THAN_2"
             MODE "LESS_THAN_2" -> case lastCall of
+                -- iptBuf < factor(2) -> reject
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmSub [1, 2]
                 CALL_JUST_BEFORE REJECT -> HALT_TR REJECT
                 CALL_JUST_BEFORE ACCEPT -> changeMode "RESTORE_IPT"
             MODE "RESTORE_IPT" -> case lastCall of
+                -- cp: ipt -> iptBuf
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmCopy [0, 1]
                 CALL_JUST_BEFORE ACCEPT -> changeMode "LESS_THAN_FACTOR"
             MODE "LESS_THAN_FACTOR" -> case lastCall of
+                -- iptBuf > factor -> accept
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmSub [1, 2]
                 CALL_JUST_BEFORE REJECT -> HALT_TR ACCEPT
                 CALL_JUST_BEFORE ACCEPT -> changeMode "LESS_THAN_EQ_FACTOR"
             MODE "LESS_THAN_EQ_FACTOR" -> case lastCall of
+                -- iptBuf == factor -> accept
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmIsZero [1]
                 CALL_JUST_BEFORE ACCEPT -> HALT_TR ACCEPT
                 CALL_JUST_BEFORE REJECT -> changeMode "RESTORE_IPT_MOD"
             MODE "RESTORE_IPT_MOD" -> case lastCall of
+                -- cp: ipt -> iptBuf
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmCopy [0, 1]
                 CALL_JUST_BEFORE ACCEPT -> changeMode "MOD"
             MODE "MOD" -> case lastCall of
+                -- iptBuf %= factor
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmMod [1, 2]
                 CALL_JUST_BEFORE REJECT -> HALT_TR REJECT
                 CALL_JUST_BEFORE ACCEPT -> changeMode "MOD_IS_ZERO"
             MODE "MOD_IS_ZERO" -> case lastCall of
+                -- iptBuf == 0 -> reject
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmIsZero [1]
                 CALL_JUST_BEFORE ACCEPT -> HALT_TR REJECT
                 CALL_JUST_BEFORE REJECT -> changeMode "INCREMENT_FACTOR"
             MODE "INCREMENT_FACTOR" -> case lastCall of
+                -- factor++
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmIncrement [2]
                 CALL_JUST_BEFORE REJECT -> HALT_TR REJECT
                 CALL_JUST_BEFORE ACCEPT -> changeMode "RESTORE_IPT_LTF"
             MODE "RESTORE_IPT_LTF" -> case lastCall of
+                -- cp: ipt -> iptBuf
                 NO_CALL_JUST_BEFORE     -> CALL_TR tmCopy [0, 1]
                 CALL_JUST_BEFORE ACCEPT -> changeMode "LESS_THAN_FACTOR"
 }     

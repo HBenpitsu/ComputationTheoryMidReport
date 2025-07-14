@@ -38,16 +38,20 @@ tmInter m1 m2 = TM {
                 ]
         in case mode of
             MODE "INIT1" -> case lastCall of
+                -- cp: ipt -> iptBuf1
                 NO_CALL_JUST_BEFORE -> CALL_TR tmCopy [0, 1]
                 CALL_JUST_BEFORE ACCEPT -> changeMode "INIT2"
             MODE "INIT2" -> case lastCall of
+                -- cp: ipt -> iptBuf2
                 NO_CALL_JUST_BEFORE -> CALL_TR tmCopy [0, 2]
                 CALL_JUST_BEFORE ACCEPT -> changeMode "M1"
             MODE "M1" -> case lastCall of
+                -- m1(iptBuf1)
                 NO_CALL_JUST_BEFORE -> CALL_TR m1 [1]
                 CALL_JUST_BEFORE REJECT -> HALT_TR REJECT
                 CALL_JUST_BEFORE ACCEPT -> changeMode "M2"
             MODE "M2" -> case lastCall of
+                -- m2(iptBuf2)
                 NO_CALL_JUST_BEFORE -> CALL_TR m2 [2]
                 CALL_JUST_BEFORE REJECT -> HALT_TR REJECT
                 CALL_JUST_BEFORE ACCEPT -> HALT_TR ACCEPT

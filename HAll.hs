@@ -54,9 +54,11 @@ hAcc = TM {
     transition = \lastCall [tm, word, mAll] ->
         case mAll of
             BLANK -> case tm of
+                -- mAll = f(tm, word)
                 ENCODED_TM tm -> CALL_TR f [0, 1, 2] 
                 _             -> HALT_TR REJECT
             ENCODED_TM _ -> case lastCall of
+                -- hAll(mAll)
                 NO_CALL_JUST_BEFORE -> CALL_TR hAll [2]
                 CALL_JUST_BEFORE halt -> HALT_TR halt
             _ -> error "Unexpected tape content"
