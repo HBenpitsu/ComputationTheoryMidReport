@@ -76,6 +76,7 @@ hAcc = TM {
                     writeAtHead (MODE "GENERATED")
                     ]
             MODE "GENERATED" -> case lastCall of
+                -- hAll(mAll)
                 NO_CALL_JUST_BEFORE -> CALL_TR hAll [2]
                 CALL_JUST_BEFORE ACCEPT -> HALT_TR ACCEPT
                 CALL_JUST_BEFORE REJECT -> HALT_TR REJECT
