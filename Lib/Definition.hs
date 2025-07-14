@@ -22,7 +22,7 @@ instance Eq TapeCell where
 type HeadIdx = Int
 data Tape = TAPE HeadIdx [TapeCell]
 instance Show Tape where
-    show (TAPE idx cells) = insert idx '>' (concatMap show cells)
+    show (TAPE idx cells) = insert idx '|' (concatMap show cells)
 {- Turing Machine -}
 data Halt = ACCEPT | REJECT deriving (Show, Eq)
 type TuringMachineResult = (Halt, [Tape])

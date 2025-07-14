@@ -8,7 +8,7 @@ f :: TuringMachine
 f = TM {
     externalTapes = 3,
     initInnerTapes = [],
-    transition = \lastCall [ENCODED_TM machine, word, return] ->
+    transition = \lastCall [ENCODED_TM givenMachine, word, return] ->
         let returnTM tm = MODS_TR [
                 identTape,
                 identTape,
@@ -21,8 +21,8 @@ f = TM {
                 writeAtHead (ENCODED_TM TM {
                     externalTapes = 1,
                     initInnerTapes = [TAPE 0 [word]],
-                    transition = \lastCall' [_, word'] -> case lastCall' of
-                        NO_CALL_JUST_BEFORE -> CALL_TR machine [1]
+                    transition = \lastCall' [_, _] -> case lastCall' of
+                        NO_CALL_JUST_BEFORE -> CALL_TR givenMachine [1]
                         CALL_JUST_BEFORE ACCEPT -> HALT_TR ACCEPT
                         CALL_JUST_BEFORE REJECT -> HALT_TR REJECT
                 })]
@@ -45,6 +45,7 @@ f = TM {
 }
 
 -- | impossible
+-- ALL_TM is not recognizable
 hAll :: TuringMachine
 hAll = TM {
     externalTapes = 1,
@@ -60,18 +61,24 @@ hAll = TM {
 hAcc :: TuringMachine
 hAcc = TM {
     externalTapes = 2,
-    initInnerTapes = [TAPE 0 [BLANK]],
-    transition = \lastCall [tm, word, mAll] ->
-        case mAll of
-            BLANK -> case tm of
+    initInnerTapes = [TAPE 0 [BLANK], TAPE 0 [MODE "INIT"]],
+    transition = \lastCall [tm, word, mAll, mode] ->
+        case mode of
+            MODE "INIT" -> case lastCall of
                 -- mAll = f(tm, word)
-                ENCODED_TM tm -> CALL_TR f [0, 1, 2] 
-                _             -> HALT_TR REJECT
-            ENCODED_TM _ -> case lastCall of
-                -- hAll(mAll)
+                NO_CALL_JUST_BEFORE -> case tm of 
+                    ENCODED_TM _ -> CALL_TR f [0, 1, 2] 
+                    _             -> HALT_TR REJECT
+                CALL_JUST_BEFORE ACCEPT -> MODS_TR [
+                    identTape,
+                    identTape,
+                    identTape,
+                    writeAtHead (MODE "GENERATED")
+                    ]
+            MODE "GENERATED" -> case lastCall of
                 NO_CALL_JUST_BEFORE -> CALL_TR hAll [2]
-                CALL_JUST_BEFORE halt -> HALT_TR halt
-            _ -> error "Unexpected tape content"           
+                CALL_JUST_BEFORE ACCEPT -> HALT_TR ACCEPT
+                CALL_JUST_BEFORE REJECT -> HALT_TR REJECT
 }
 
 m = makeDummyTM "abc"
@@ -82,6 +89,6 @@ main = do
     putStrLn $ case process hAcc [TAPE 0 [ENCODED_TM m], toTape "abc"] of
         (ACCEPT, tapes) -> "Accepted: " ++ show tapes
         (REJECT, tapes) -> "Rejected: " ++ show tapes
-    putStrLn $ case process hAcc [TAPE 0 [ENCODED_TM m], toTape "e"] of
+    putStrLn $ case process hAcc [TAPE 0 [ENCODED_TM m], toTape "abe"] of
         (ACCEPT, tapes) -> "Accepted: " ++ show tapes
         (REJECT, tapes) -> "Rejected: " ++ show tapes
