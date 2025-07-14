@@ -2,25 +2,7 @@ import Lib.Definition
 import Lib.HeadActions
 import Lib.Utilities
 import Lib.Processor
-import Lib.Module (tmCopy)
-
-makeDummyTM :: String -> TuringMachine
-makeDummyTM str = TM {
-    externalTapes = 1,
-    initInnerTapes = [toTape str],
-    transition = \lastCall [ipt, inner] ->
-        case (ipt, inner) of
-            (SYM a, SYM b) | a == b -> MODS_TR [
-                moveHead RIGHT,
-                moveHead RIGHT
-                ]
-            (SYM a, SYM b) | a /= b -> MODS_TR [
-                moveHead RIGHT,
-                identTape
-                ]
-            (_, BLANK) -> HALT_TR ACCEPT
-            (BLANK, _) -> HALT_TR REJECT
-}
+import Lib.Module (tmCopy, makeDummyTM)
 
 m1 = makeDummyTM "abc"
 m2 = makeDummyTM "ade"
